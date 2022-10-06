@@ -1,49 +1,35 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Card from '../UI/Card';
 import classes from './AvailableMeals.module.css';
 import MealItem from './MealItem/MealItem';
 
-const DUMMY_MEALS = [
-	{
-		id: 'm1',
-		name: 'Sushi',
-		descr: 'Raw fish with avacado and cucumber',
-		price: 22.7987,
-	},
-	{
-		id: 'm2',
-		name: 'Burger',
-		descr: 'American classic with all the fixins',
-		price: 12.99,
-	},
-	{
-		id: 'm6',
-		name: 'Steak',
-		descr: 'Try this prime cut with our special steak sauce',
-		price: 29.288,
-	},
-	{
-		id: 'm3',
-		name: 'Shrimp',
-		descr: '8 Collossal prawns served with lemon butter',
-		price: 24.5,
-	},
-	{
-		id: 'm4',
-		name: 'Pasta',
-		descr: 'You choose your protein with white or red sauce',
-		price: 18.0,
-	},
-	{
-		id: 'm5',
-		name: 'Salad',
-		descr: 'Homegrown vegetables with your choice of dressing',
-		price: 14.99,
-	},
-];
-
 const AvailableMeals = () => {
-	const mealsList = DUMMY_MEALS.map((meal) => (
+	const [meals, setMeals] = useState([]);
+
+	useEffect(() => {
+		const fetchMeals = async () => {
+			const response = await fetch(
+				'https://react-http-30b70-default-rtdb.firebaseio.com/meals.json'
+			);
+			const responseData = await response.json();
+
+			//transform data object from firebase to an array
+			const loadedMeals = [];
+
+			for (const key in responseData) {
+				loadedMeals.push({
+					id: key,
+					name: responseData[key].name,
+					descr: responseData[key].descr,
+					price: responseData[key].price,
+				});
+			}
+
+			setMeals(loadedMeals);
+		};
+		fetchMeals();
+	}, []);
+	const mealsList = meals.map((meal) => (
 		<MealItem
 			id={meal.id}
 			key={meal.id}
