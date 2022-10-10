@@ -1,10 +1,13 @@
 import React, { useContext } from 'react';
+import { useState } from 'react';
 import CartContext from '../../store/cart-context';
 import Modal from '../UI/Modal';
 import classes from './Cart.module.css';
 import CartItem from './CartItem';
+import Checkout from './Checkout';
 
 const Cart = (props) => {
+	const [isCheckout, setIsCheckout] = useState(false);
 	const cartCtx = useContext(CartContext);
 	const totalAmount = `$${cartCtx.totalAmount.toFixed(2)}`;
 	const hasItems = cartCtx.items.length > 0;
@@ -15,6 +18,20 @@ const Cart = (props) => {
 
 	const handleAddItem = (item) => {
 		cartCtx.addItem({ ...item, amount: 1 });
+	};
+
+	const handleOrder = () => {
+		setIsCheckout(true);
+	};
+
+	const submitToServer = (userData) => {
+		fetch('https://react-http-30b70-default-rtdb.firebaseio.com/orders.json', {
+			method: 'POST',
+			body: JSON.stringify({
+				user: userData,
+				cart: cartCtx.items,
+			}),
+		});
 	};
 
 	const cartItems = (
@@ -32,6 +49,19 @@ const Cart = (props) => {
 		</ul>
 	);
 
+	const modalActions = (
+		<div className={classes.actions}>
+			<button className={classes['button--alt']} onClick={props.onHideCart}>
+				Close
+			</button>
+			{hasItems && (
+				<button className={classes.button} onClick={handleOrder}>
+					Order
+				</button>
+			)}
+		</div>
+	);
+
 	return (
 		<Modal onHideCart={props.onHideCart}>
 			{cartItems}
@@ -39,12 +69,13 @@ const Cart = (props) => {
 				<span>Total Amount</span>
 				<span>{totalAmount}</span>
 			</div>
-			<div className={classes.actions}>
-				<button className={classes['button--alt']} onClick={props.onHideCart}>
-					Close
-				</button>
-				{hasItems && <button className={classes.button}>Order</button>}
-			</div>
+			{isCheckout && (
+				<Checkout
+					onSubmitToServer={submitToServer}
+					onCancel={props.onHideCart}
+				/>
+			)}
+			{!isCheckout && modalActions}
 		</Modal>
 	);
 };
